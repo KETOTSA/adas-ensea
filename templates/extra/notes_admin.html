@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+{% block title %}Gestion des Notes — Admin{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <span class="page-hero-label">Administration</span>
+    <h1>Gestion des Notes</h1>
+    <p>Saisir et gérer les résultats académiques des étudiants</p>
+  </div>
+</div>
+<div class="container">
+  <div class="grid-2">
+    <!-- Formulaire ajout note -->
+    <div class="card">
+      <div class="card-header"><h3><i class="bi bi-plus-circle-fill text-gold"></i> Saisir une note</h3></div>
+      <div class="card-body">
+        <form method="POST" action="{{ url_for('extra.ajouter_note') }}">
+          <div class="form-group">
+            <label class="form-label">Étudiant *</label>
+            <select name="student_id" class="form-control" required>
+              <option value="">-- Sélectionner --</option>
+              {% for s in etudiants %}
+                <option value="{{ s.id }}">{{ s.nom_complet }} ({{ s.student_code }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Matière *</label>
+            <input type="text" name="matiere" class="form-control" required list="matieres-list"
+                   placeholder="Statistiques descriptives, R, Python..."/>
+            <datalist id="matieres-list">
+              <option value="Statistiques descriptives"/>
+              <option value="Probabilités"/>
+              <option value="Econométrie"/>
+              <option value="Logiciel R"/>
+              <option value="Python pour la data science"/>
+              <option value="Bases de données"/>
+              <option value="Mathématiques"/>
+            </datalist>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Note *</label>
+              <input type="number" name="note" class="form-control" required step="0.01" min="0" max="20"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Note max</label>
+              <input type="number" name="note_max" class="form-control" value="20" step="0.01" min="1"/>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Semestre</label>
+              <select name="semestre" class="form-control">
+                <option value="Semestre 1">Semestre 1</option>
+                <option value="Semestre 2">Semestre 2</option>
+                <option value="Annuel">Annuel</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Année académique</label>
+              <input type="text" name="annee_academique" class="form-control" value="{{ annee_courante }}" placeholder="2024-2025"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Commentaire</label>
+            <textarea name="commentaire" class="form-control" rows="2" placeholder="Appréciation optionnelle..."></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-block">
+            <i class="bi bi-check-lg"></i> Enregistrer la note
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Liste des notes récentes -->
+    <div>
+      <h3 style="margin-bottom:1rem">Notes récentes</h3>
+      {% for s in etudiants %}
+        {% if s.notes %}
+          <div class="card mb-2">
+            <div class="card-header" style="padding:0.875rem 1.25rem">
+              <div style="display:flex;align-items:center;gap:0.75rem">
+                {% if s.photo %}
+                  <img src="{{ url_for('static', filename=s.photo) }}" class="avatar" width="36" height="36"/>
+                {% else %}
+                  <div class="avatar-placeholder" style="width:36px;height:36px;font-size:0.85rem">{{ s.prenom[0] }}{{ s.nom[0] }}</div>
+                {% endif %}
+                <div>
+                  <strong style="font-size:0.88rem">{{ s.nom_complet }}</strong>
+                  <div style="font-size:0.75rem;color:#94a3b8">{{ s.student_code }}</div>
+                </div>
+                <a href="{{ url_for('student.profil_public', student_id=s.id) }}" class="btn btn-sm btn-secondary" style="margin-left:auto">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </div>
+            </div>
+            <div class="card-body" style="padding:0.75rem 1.25rem">
+              {% for n in s.notes[-3:] %}
+                <div class="note-row" style="padding:0.5rem 0">
+                  <div class="note-matiere" style="font-size:0.85rem">{{ n.matiere }}</div>
+                  <span class="badge {% if n.note/n.note_max >= 0.7 %}badge-success{% elif n.note/n.note_max >= 0.5 %}badge-gold{% else %}badge-danger{% endif %}">
+                    {{ n.note }}/{{ n.note_max|int }}
+                  </span>
+                  <form method="POST" action="{{ url_for('extra.supprimer_note', id=n.id) }}"
+                        onsubmit="return confirm('Supprimer cette note ?')">
+                    <button type="submit" class="btn btn-sm btn-danger" style="padding:0.2rem 0.4rem"><i class="bi bi-trash3"></i></button>
+                  </form>
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}

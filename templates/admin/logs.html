@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+{% block title %}Logs d'activité — Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <span class="section-label">Administration</span>
+  <h1>Logs d'activité</h1>
+  <p>Historique des actions sur la plateforme</p>
+</div>
+
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Date/Heure</th>
+          <th>Utilisateur</th>
+          <th>Action</th>
+          <th>Détails</th>
+          <th>IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs.items %}
+          <tr>
+            <td style="white-space:nowrap;font-size:0.82rem">
+              {{ log.timestamp.strftime('%d/%m/%Y %H:%M') }}
+            </td>
+            <td>
+              {% if log.user %}
+                <span class="badge badge-navy">{{ log.user.username }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <span class="badge {% if 'DELETE' in log.action %}badge-danger{% elif 'ADD' in log.action or 'LOGIN' == log.action %}badge-success{% else %}badge-info{% endif %}"
+                    style="{% if 'DELETE' in log.action %}background:#fef2f2;color:#991b1b{% endif %}">
+                {{ log.action }}
+              </span>
+            </td>
+            <td style="font-size:0.82rem;color:#475569">{{ log.details or '—' }}</td>
+            <td style="font-size:0.78rem;color:#94a3b8">{{ log.ip_address or '—' }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Pagination -->
+{% if logs.pages > 1 %}
+  <div style="display:flex;justify-content:center;gap:0.5rem;margin-top:1.5rem">
+    {% if logs.has_prev %}
+      <a href="{{ url_for('admin.logs', page=logs.prev_num) }}" class="btn btn-secondary btn-sm">
+        <i class="bi bi-chevron-left"></i> Précédent
+      </a>
+    {% endif %}
+    <span style="padding:0.5rem 1rem;font-size:0.9rem;color:#475569">
+      Page {{ logs.page }} / {{ logs.pages }}
+    </span>
+    {% if logs.has_next %}
+      <a href="{{ url_for('admin.logs', page=logs.next_num) }}" class="btn btn-secondary btn-sm">
+        Suivant <i class="bi bi-chevron-right"></i>
+      </a>
+    {% endif %}
+  </div>
+{% endif %}
+{% endblock %}

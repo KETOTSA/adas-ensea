@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block title %}Étudiants — Admin{% endblock %}
+{% block content %}
+<div class="page-header" style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:1rem">
+  <div>
+    <span class="section-label">Administration</span>
+    <h1>Étudiants</h1>
+    <p>{{ etudiants|length }} étudiant{% if etudiants|length > 1 %}s{% endif %} trouvé{% if etudiants|length > 1 %}s{% endif %}</p>
+  </div>
+  <div style="display:flex;gap:0.75rem">
+    <a href="{{ url_for('admin.importer_csv') }}" class="btn btn-secondary">
+      <i class="bi bi-file-earmark-csv"></i> Importer CSV
+    </a>
+    <a href="{{ url_for('admin.ajouter_etudiant') }}" class="btn btn-primary">
+      <i class="bi bi-person-plus-fill"></i> Ajouter
+    </a>
+  </div>
+</div>
+
+<!-- Search -->
+<form method="GET" class="search-bar">
+  <input type="text" name="q" class="form-control" placeholder="Rechercher par nom, email, code..." value="{{ search }}"/>
+  <select name="annee" class="form-control" style="max-width:200px">
+    <option value="">Toutes les années</option>
+    {% for a in annees %}
+      <option value="{{ a }}" {% if a == annee %}selected{% endif %}>{{ a }}</option>
+    {% endfor %}
+  </select>
+  <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Filtrer</button>
+  {% if search or annee %}
+    <a href="{{ url_for('admin.liste_etudiants') }}" class="btn btn-secondary">
+      <i class="bi bi-x-lg"></i> Réinitialiser
+    </a>
+  {% endif %}
+</form>
+
+{% if etudiants %}
+<div class="card">
+  <div class="table-wrapper">
+    <table>
+      <thead>
+        <tr>
+          <th>Étudiant</th>
+          <th>Code</th>
+          <th>Année</th>
+          <th>Email</th>
+          <th>Username</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for s in etudiants %}
+          <tr>
+            <td>
+              <div style="display:flex;align-items:center;gap:0.75rem">
+                {% if s.photo %}
+                  <img src="{{ url_for('static', filename=s.photo) }}" class="avatar" width="40" height="40"/>
+                {% else %}
+                  <div class="avatar-placeholder" style="width:40px;height:40px;font-size:0.9rem">
+                    {{ s.prenom[0] }}{{ s.nom[0] }}
+                  </div>
+                {% endif %}
+                <div>
+                  <strong>{{ s.nom_complet }}</strong>
+                  {% if s.nationalite %}
+                    <div style="font-size:0.78rem;color:#94a3b8">{{ s.nationalite }}</div>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td><span class="badge badge-navy">{{ s.student_code }}</span></td>
+            <td>{{ s.annee_inscription }}</td>
+            <td>{{ s.email or '—' }}</td>
+            <td>
+              {% if s.user %}
+                <span class="badge badge-info">{{ s.user.username }}</span>
+              {% else %}
+                <span class="text-muted">—</span>
+              {% endif %}
+            </td>
+            <td>
+              <div style="display:flex;gap:0.5rem">
+                <a href="{{ url_for('student.profil_public', student_id=s.id) }}" 
+                   class="btn btn-sm btn-secondary" title="Voir">
+                  <i class="bi bi-eye"></i>
+                </a>
+                <a href="{{ url_for('admin.modifier_etudiant', student_id=s.id) }}" 
+                   class="btn btn-sm btn-primary" title="Modifier">
+                  <i class="bi bi-pencil"></i>
+                </a>
+                <form method="POST" action="{{ url_for('admin.supprimer_etudiant', student_id=s.id) }}"
+                      onsubmit="return confirm('Supprimer {{ s.nom_complet }} ? Cette action est irréversible.')">
+                  <button type="submit" class="btn btn-sm btn-danger" title="Supprimer">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% else %}
+  <div class="empty-state card" style="padding:4rem">
+    <i class="bi bi-mortarboard"></i>
+    <h3>Aucun étudiant trouvé</h3>
+    <p>{% if search %}Essayez d'autres termes de recherche{% else %}Commencez par ajouter des étudiants{% endif %}</p>
+    <a href="{{ url_for('admin.ajouter_etudiant') }}" class="btn btn-primary mt-2">
+      <i class="bi bi-person-plus-fill"></i> Ajouter un étudiant
+    </a>
+  </div>
+{% endif %}
+{% endblock %}

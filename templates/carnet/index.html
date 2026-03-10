@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+{% block title %}Mon Carnet de Notes — ADAS{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <span class="page-hero-label">Espace personnel</span>
+    <h1><i class="bi bi-journal-text"></i> Mon Carnet de Notes</h1>
+    <p>Tes notes personnelles — visibles uniquement par toi</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Barre outils -->
+  <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem;margin-bottom:1.5rem">
+    <!-- Recherche -->
+    <form method="GET" style="display:flex;gap:0.75rem;flex:1;min-width:200px;max-width:500px">
+      <input type="text" name="q" class="form-control" placeholder="Rechercher dans mes notes..." value="{{ q }}"/>
+      {% if categorie %}
+        <input type="hidden" name="categorie" value="{{ categorie }}"/>
+      {% endif %}
+      <button type="submit" class="btn btn-primary btn-sm"><i class="bi bi-search"></i></button>
+      {% if q or categorie %}
+        <a href="{{ url_for('carnet.index') }}" class="btn btn-secondary btn-sm"><i class="bi bi-x-lg"></i></a>
+      {% endif %}
+    </form>
+    <button class="btn btn-gold" data-modal="modalAjouter">
+      <i class="bi bi-plus-lg"></i> Nouvelle note
+    </button>
+  </div>
+
+  <!-- Catégories -->
+  {% if categories %}
+    <div class="year-tabs" style="margin-bottom:1.5rem">
+      <a href="{{ url_for('carnet.index', q=q) }}" class="year-tab {% if not categorie %}active{% endif %}">Toutes</a>
+      {% for cat in categories %}
+        <a href="{{ url_for('carnet.index', categorie=cat, q=q) }}" class="year-tab {% if cat == categorie %}active{% endif %}">
+          {{ cat }}
+        </a>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <!-- Notes épinglées -->
+  {% set epinglees = notes | selectattr('epingle') | list %}
+  {% set normales = notes | rejectattr('epingle') | list %}
+
+  {% if epinglees %}
+    <div style="margin-bottom:2rem">
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:1rem">
+        <i class="bi bi-pin-fill text-gold"></i>
+        <span class="section-label" style="margin:0">Épinglées</span>
+      </div>
+      <div class="carnet-grid">
+        {% for note in epinglees %}
+          {% include 'carnet/_carte.html' %}
+        {% endfor %}
+      </div>
+    </div>
+  {% endif %}
+
+  <!-- Toutes les autres notes -->
+  {% if normales %}
+    {% if epinglees %}
+      <span class="section-label">Autres notes</span>
+      <div style="margin-bottom:0.75rem"></div>
+    {% endif %}
+    <div class="carnet-grid">
+      {% for note in normales %}
+        {% include 'carnet/_carte.html' %}
+      {% endfor %}
+    </div>
+  {% elif not epinglees %}
+    <div class="empty-state card" style="padding:4rem">
+      <i class="bi bi-journal-plus"></i>
+      <h3>Carnet vide</h3>
+      <p>Clique sur <strong>Nouvelle note</strong> pour commencer à écrire</p>
+    </div>
+  {% endif %}
+
+</div>
+
+<!-- MODAL Ajouter -->
+<div class="modal-overlay" id="modalAjouter">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header">
+      <h3><i class="bi bi-journal-plus text-gold"></i> Nouvelle note</h3>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('carnet.ajouter') }}">
+        <div class="form-group">
+          <label class="form-label">Titre *</label>
+          <input type="text" name="titre" class="form-control" required placeholder="Titre de ta note..."/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Catégorie</label>
+            <input type="text" name="categorie" class="form-control" list="cats-list"
+                   placeholder="Cours, Idées, Projet..." value="Général"/>
+            <datalist id="cats-list">
+              <option value="Général"/><option value="Cours"/><option value="Projet"/>
+              <option value="Idées"/><option value="Révisions"/><option value="Personnel"/>
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Couleur</label>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.3rem">
+              {% for c in couleurs %}
+                <label style="cursor:pointer">
+                  <input type="radio" name="couleur" value="{{ c }}" style="display:none"
+                         {% if loop.first %}checked{% endif %}/>
+                  <div style="width:28px;height:28px;border-radius:50%;background:{{ c }};border:3px solid transparent;transition:all 0.2s"
+                       onclick="this.style.borderColor='#e8b85c';document.querySelectorAll('.color-dot').forEach(d=>d.style.borderColor='transparent');this.style.borderColor='#e8b85c'"
+                       class="color-dot"></div>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contenu *</label>
+          <textarea name="contenu" class="form-control" rows="8" required
+                    placeholder="Écris ta note ici...&#10;&#10;Tu peux noter des définitions, des idées, des résumés de cours, des plans de projet..."></textarea>
+        </div>
+        <div style="display:flex;gap:0.75rem">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Enregistrer</button>
+          <button type="button" class="btn btn-secondary modal-close">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<style>
+.carnet-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 1.25rem;
+}
+.carnet-card {
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 2px 16px rgba(0,53,128,0.08);
+  border: 1px solid #e2e8f0;
+  transition: all 0.22s ease;
+  background: white;
+  display: flex;
+  flex-direction: column;
+}
+.carnet-card:hover { transform: translateY(-3px); box-shadow: 0 8px 32px rgba(0,53,128,0.15); }
+.carnet-card-header {
+  padding: 1rem 1.25rem 0.75rem;
+  color: white;
+  position: relative;
+}
+.carnet-card-cat {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.75;
+  margin-bottom: 0.35rem;
+}
+.carnet-card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.05rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.carnet-card-body {
+  padding: 1rem 1.25rem;
+  flex: 1;
+  font-size: 0.88rem;
+  color: #475569;
+  line-height: 1.65;
+  white-space: pre-line;
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.carnet-card-footer {
+  padding: 0.75rem 1.25rem;
+  border-top: 1px solid #f0f2f5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.carnet-date { font-size: 0.75rem; color: #94a3b8; }
+@media (max-width: 480px) { .carnet-grid { grid-template-columns: 1fr; } }
+</style>
+{% endblock %}

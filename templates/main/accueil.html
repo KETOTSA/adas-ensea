@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% block title %}Accueil — ADAS Division Statistique{% endblock %}
+{% block content %}
+
+<!-- HERO BANNER -->
+<section class="hero-banner">
+  <div class="hero-inner">
+    <div class="hero-tag"><i class="bi bi-mortarboard-fill"></i> ENSEA Abidjan — Division officielle</div>
+    <h1 class="hero-title">
+      Bienvenue à l'<span>ADAS</span><br/>Division des Analystes<br/>Statisticiens
+    </h1>
+    <p class="hero-desc">
+      Le portail académique officiel de la division. Accédez à vos informations, suivez vos résultats, restez informé des événements et échangez avec vos camarades.
+    </p>
+    <div class="hero-actions">
+      {% if current_user.is_authenticated %}
+        {% if current_user.is_admin() %}
+          <a href="{{ url_for('admin.dashboard') }}" class="btn btn-gold btn-lg"><i class="bi bi-shield-fill"></i> Tableau de bord</a>
+        {% else %}
+          <a href="{{ url_for('student.profil') }}" class="btn btn-gold btn-lg"><i class="bi bi-person-fill"></i> Mon profil</a>
+          <a href="{{ url_for('extra.mes_notes') }}" class="btn btn-outline btn-lg" style="color:white;border-color:rgba(255,255,255,0.5)"><i class="bi bi-bar-chart-fill"></i> Mes notes</a>
+        {% endif %}
+      {% else %}
+        <a href="{{ url_for('auth.login') }}" class="btn btn-gold btn-lg"><i class="bi bi-box-arrow-in-right"></i> Se connecter</a>
+        <a href="{{ url_for('bureau.index') }}" class="btn btn-outline btn-lg" style="color:white;border-color:rgba(255,255,255,0.5)"><i class="bi bi-people-fill"></i> Voir le bureau</a>
+      {% endif %}
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="hero-stat-num">{{ total_etudiants }}</div>
+        <div class="hero-stat-lbl">Étudiants inscrits</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">{{ total_promos }}</div>
+        <div class="hero-stat-lbl">Promotions</div>
+      </div>
+      <div>
+        <div class="hero-stat-num">{{ total_projets }}</div>
+        <div class="hero-stat-lbl">Projets réalisés</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+
+  <!-- Annonces + Événements -->
+  <div class="grid-2" style="margin-bottom:3rem">
+    
+    <!-- Annonces -->
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.25rem">
+        <div>
+          <span class="section-label">Vie de la division</span>
+          <h2 class="section-title">Annonces</h2>
+          <div class="section-line"></div>
+        </div>
+        <a href="{{ url_for('extra.annonces') }}" class="btn btn-outline btn-sm">Toutes les annonces</a>
+      </div>
+      
+      {% if annonces %}
+        <div style="display:flex;flex-direction:column;gap:0.875rem">
+          {% for annonce in annonces %}
+            <div class="annonce-card {% if annonce.importante %}importante{% endif %}">
+              {% if annonce.importante %}
+                <span class="badge badge-gold" style="margin-bottom:0.4rem"><i class="bi bi-star-fill"></i> Important</span>
+              {% endif %}
+              <div class="annonce-title">{{ annonce.titre }}</div>
+              <div class="annonce-meta">
+                <span><i class="bi bi-person"></i> {{ annonce.auteur.username if annonce.auteur else 'Bureau' }}</span>
+                <span><i class="bi bi-clock"></i> {{ annonce.date_publication.strftime('%d/%m/%Y') }}</span>
+              </div>
+              <div class="annonce-body">{{ annonce.contenu[:200] }}{% if annonce.contenu|length > 200 %}...{% endif %}</div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding:2.5rem;background:white;border-radius:14px;border:1px solid #e2e8f0">
+          <i class="bi bi-megaphone"></i>
+          <h3>Aucune annonce</h3>
+          <p>Les annonces du bureau apparaîtront ici</p>
+        </div>
+      {% endif %}
+    </div>
+    
+    <!-- Événements -->
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.25rem">
+        <div>
+          <span class="section-label">Agenda</span>
+          <h2 class="section-title">Prochains événements</h2>
+          <div class="section-line"></div>
+        </div>
+        <a href="{{ url_for('extra.calendrier') }}" class="btn btn-outline btn-sm">Calendrier complet</a>
+      </div>
+      
+      {% if evenements %}
+        <div style="display:flex;flex-direction:column;gap:0.875rem">
+          {% for ev in evenements %}
+            <div class="event-card">
+              <div class="event-date-box">
+                <div class="event-day">{{ ev.date_debut.strftime('%d') }}</div>
+                <div class="event-month">{{ ev.date_debut.strftime('%b') }}</div>
+              </div>
+              <div>
+                <span class="event-type event-type-{{ ev.type_event }}">{{ ev.type_event }}</span>
+                <div class="event-title">{{ ev.titre }}</div>
+                <div class="event-meta">
+                  {% if ev.lieu %}<span><i class="bi bi-geo-alt"></i> {{ ev.lieu }}</span>{% endif %}
+                  <span><i class="bi bi-clock"></i> {{ ev.date_debut.strftime('%H:%M') }}</span>
+                </div>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding:2.5rem;background:white;border-radius:14px;border:1px solid #e2e8f0">
+          <i class="bi bi-calendar3"></i>
+          <h3>Aucun événement à venir</h3>
+          <p>Les événements planifiés apparaîtront ici</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Bureau actuel -->
+  {% if bureau %}
+  <section style="margin-bottom:3rem">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.25rem">
+      <div>
+        <span class="section-label">Année {{ annee }}</span>
+        <h2 class="section-title">Bureau de la Division</h2>
+        <div class="section-line"></div>
+      </div>
+      <a href="{{ url_for('bureau.index') }}" class="btn btn-outline btn-sm">Bureau complet</a>
+    </div>
+    <div class="bureau-grid">
+      {% for membre in bureau %}
+        <div class="bureau-card">
+          <div class="bureau-role">{{ membre.role }}</div>
+          {% if membre.student.photo %}
+            <img src="{{ url_for('static', filename=membre.student.photo) }}"
+                 class="avatar" width="90" height="90" style="margin:0 auto"
+                 alt="{{ membre.student.nom_complet }}"/>
+          {% else %}
+            <div class="avatar-placeholder" style="width:90px;height:90px;font-size:1.8rem;margin:0 auto">
+              {{ membre.student.prenom[0] }}{{ membre.student.nom[0] }}
+            </div>
+          {% endif %}
+          <div class="bureau-name">{{ membre.student.prenom }}<br/>{{ membre.student.nom }}</div>
+          <div class="bureau-promo">Promo {{ membre.student.annee_inscription }}</div>
+          <a href="{{ url_for('student.profil_public', student_id=membre.student.id) }}"
+             class="btn btn-outline btn-sm" style="margin-top:0.75rem">
+            <i class="bi bi-person"></i> Profil
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <!-- Galerie aperçu -->
+  {% if photos %}
+  <section style="margin-bottom:2rem">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:1.25rem">
+      <div>
+        <span class="section-label">Vie étudiante</span>
+        <h2 class="section-title">Galerie photos</h2>
+        <div class="section-line"></div>
+      </div>
+      <a href="{{ url_for('extra.galerie') }}" class="btn btn-outline btn-sm">Voir toutes les photos</a>
+    </div>
+    <div class="galerie-grid">
+      {% for photo in photos %}
+        <div class="galerie-item">
+          <img src="{{ url_for('static', filename=photo.fichier) }}" alt="{{ photo.titre or 'Photo' }}"/>
+          <div class="galerie-overlay">
+            <div class="galerie-caption">{{ photo.titre or photo.annee_academique or '' }}</div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

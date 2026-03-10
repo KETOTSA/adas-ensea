@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block title %}Mes Notes — ADAS{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <span class="page-hero-label">Résultats académiques</span>
+    <h1>Mes Notes</h1>
+    <p>{{ current_user.student.nom_complet }} — {{ current_user.student.student_code }}</p>
+  </div>
+</div>
+<div class="container">
+  {% if groupes %}
+    {% for periode, ns in groupes.items() %}
+      <div class="card mb-3">
+        <div class="card-header">
+          <h3>{{ periode }}</h3>
+          <div>
+            <span class="badge badge-navy">Moyenne : {{ '%.2f'|format(moyennes[periode]) }} / {{ ns[0].note_max }}</span>
+          </div>
+        </div>
+        <div class="card-body">
+          {% for n in ns %}
+            {% set pct = (n.note / n.note_max * 100)|round %}
+            <div class="note-row">
+              <div class="note-matiere">{{ n.matiere }}</div>
+              <div class="note-bar">
+                <div class="note-bar-fill" style="width:{{ pct }}%;{% if pct >= 70 %}background:linear-gradient(to right,#166534,#22c55e){% elif pct >= 50 %}background:linear-gradient(to right,#92400e,#f59e0b){% else %}background:linear-gradient(to right,#991b1b,#ef4444){% endif %}"></div>
+              </div>
+              <div class="note-val {% if pct >= 70 %}haute{% elif pct >= 50 %}moyenne{% else %}basse{% endif %}">
+                {{ n.note }}/{{ n.note_max|int }}
+              </div>
+            </div>
+            {% if n.commentaire %}<p style="font-size:0.8rem;color:#94a3b8;padding:0 0 0.5rem 0;border-bottom:1px solid #f0f2f5">{{ n.commentaire }}</p>{% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state card" style="padding:4rem">
+      <i class="bi bi-journals"></i>
+      <h3>Aucune note disponible</h3>
+      <p>Vos résultats académiques apparaîtront ici dès qu'ils seront saisis par l'administration</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,37 @@
+<div class="carnet-card">
+  <div class="carnet-card-header" style="background:{{ note.couleur }}">
+    {% if note.epingle %}
+      <i class="bi bi-pin-fill" style="position:absolute;top:0.75rem;right:0.75rem;opacity:0.8"></i>
+    {% endif %}
+    <div class="carnet-card-cat">{{ note.categorie }}</div>
+    <div class="carnet-card-title">{{ note.titre }}</div>
+  </div>
+  <div class="carnet-card-body">{{ note.contenu }}</div>
+  <div class="carnet-card-footer">
+    <span class="carnet-date">
+      <i class="bi bi-clock"></i>
+      {{ note.updated_at.strftime('%d/%m/%Y à %H:%M') }}
+    </span>
+    <div style="display:flex;gap:0.4rem">
+      <!-- Épingler -->
+      <form method="POST" action="{{ url_for('carnet.epingler', note_id=note.id) }}">
+        <button type="submit" class="btn btn-sm btn-secondary" title="{% if note.epingle %}Désépingler{% else %}Épingler{% endif %}"
+                style="padding:0.3rem 0.6rem">
+          <i class="bi bi-pin{% if note.epingle %}-fill{% endif %}"></i>
+        </button>
+      </form>
+      <!-- Modifier -->
+      <a href="{{ url_for('carnet.modifier', note_id=note.id) }}" class="btn btn-sm btn-outline"
+         style="padding:0.3rem 0.6rem" title="Modifier">
+        <i class="bi bi-pencil"></i>
+      </a>
+      <!-- Supprimer -->
+      <form method="POST" action="{{ url_for('carnet.supprimer', note_id=note.id) }}"
+            onsubmit="return confirm('Supprimer cette note définitivement ?')">
+        <button type="submit" class="btn btn-sm btn-danger" style="padding:0.3rem 0.6rem" title="Supprimer">
+          <i class="bi bi-trash3"></i>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>

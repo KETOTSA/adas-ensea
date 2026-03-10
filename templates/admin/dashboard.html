@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% block title %}Tableau de bord — Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <span class="section-label">Administration</span>
+  <h1>Tableau de bord</h1>
+  <p>Gestion de la Division des Analystes Statisticiens</p>
+</div>
+
+<!-- Stats -->
+<div class="stat-grid">
+  <div class="stat-card">
+    <div class="stat-icon"><i class="bi bi-mortarboard-fill"></i></div>
+    <div>
+      <div class="stat-value">{{ total_etudiants }}</div>
+      <div class="stat-label">Étudiants inscrits</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+    <div>
+      <div class="stat-value">{{ bureau_actuel }}</div>
+      <div class="stat-label">Membres du bureau {{ annee_courante }}</div>
+    </div>
+  </div>
+  <div class="stat-card">
+    <div class="stat-icon"><i class="bi bi-calendar3"></i></div>
+    <div>
+      <div class="stat-value">{{ annees|length }}</div>
+      <div class="stat-label">Années académiques</div>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="grid-2 mb-3">
+  <div class="card">
+    <div class="card-header"><h3><i class="bi bi-lightning-fill text-gold"></i> Actions rapides</h3></div>
+    <div class="card-body" style="display:flex;flex-direction:column;gap:0.75rem">
+      <a href="{{ url_for('admin.ajouter_etudiant') }}" class="btn btn-primary">
+        <i class="bi bi-person-plus-fill"></i> Ajouter un étudiant
+      </a>
+      <a href="{{ url_for('admin.liste_etudiants') }}" class="btn btn-secondary">
+        <i class="bi bi-mortarboard-fill"></i> Gérer les étudiants
+      </a>
+      <a href="{{ url_for('admin.gerer_bureau', annee=annee_courante) }}" class="btn btn-secondary">
+        <i class="bi bi-people-fill"></i> Gérer le bureau {{ annee_courante }}
+      </a>
+      <a href="{{ url_for('admin.importer_csv') }}" class="btn btn-secondary">
+        <i class="bi bi-file-earmark-csv"></i> Importer via CSV
+      </a>
+      <a href="{{ url_for('bureau.index') }}" class="btn btn-secondary">
+        <i class="bi bi-eye-fill"></i> Voir le bureau public
+      </a>
+    </div>
+  </div>
+  
+  <!-- Recent Logs -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="bi bi-clock-history text-gold"></i> Activité récente</h3>
+      <a href="{{ url_for('admin.logs') }}" class="btn btn-sm btn-secondary">Voir tout</a>
+    </div>
+    <div class="card-body" style="padding:0">
+      {% if recent_logs %}
+        <div style="overflow-x:auto">
+          {% for log in recent_logs %}
+            <div style="padding:0.75rem 1.25rem;border-bottom:1px solid #f0f2f5;font-size:0.82rem">
+              <div style="display:flex;justify-content:space-between;gap:0.5rem">
+                <span style="font-weight:600;color:#0a2342">{{ log.action }}</span>
+                <span style="color:#94a3b8;white-space:nowrap">
+                  {{ log.timestamp.strftime('%d/%m %H:%M') }}
+                </span>
+              </div>
+              {% if log.details %}
+                <div style="color:#475569;margin-top:0.15rem">{{ log.details[:60] }}{% if log.details|length > 60 %}...{% endif %}</div>
+              {% endif %}
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="empty-state" style="padding:2rem">
+          <i class="bi bi-clock-history" style="font-size:2rem"></i>
+          <p>Aucune activité récente</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+{% endblock %}

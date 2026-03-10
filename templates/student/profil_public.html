@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}{{ student.nom_complet }} — ADAS{% endblock %}
+{% block content %}
+<div class="profile-hero">
+  <div class="profile-hero-inner">
+    {% if student.photo %}
+      <img src="{{ url_for('static', filename=student.photo) }}" class="profile-avatar" alt="{{ student.nom_complet }}"/>
+    {% else %}
+      <div class="avatar-placeholder profile-avatar-placeholder">{{ student.prenom[0] }}{{ student.nom[0] }}</div>
+    {% endif %}
+    <div>
+      <div class="profile-code">{{ student.student_code }}</div>
+      <div class="profile-name">{{ student.prenom }} {{ student.nom }}</div>
+      <div class="profile-meta">
+        {% if student.nationalite %}
+          <span class="profile-meta-item"><i class="bi bi-globe2"></i> {{ student.nationalite }}</span>
+        {% endif %}
+        <span class="profile-meta-item"><i class="bi bi-calendar3"></i> Promo {{ student.annee_inscription }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if student.bio %}
+<div class="card mb-3">
+  <div class="card-body"><p>{{ student.bio }}</p></div>
+</div>
+{% endif %}
+
+{% if parcours %}
+<div class="card mb-3">
+  <div class="card-header"><h3>Parcours académique</h3></div>
+  <div class="card-body">
+    <div class="timeline">
+      {% for etape in parcours %}
+        <div class="timeline-item">
+          <div class="timeline-etape">{{ etape.etape }}</div>
+          {% if etape.periode %}<div class="timeline-periode">{{ etape.periode }}</div>{% endif %}
+          {% if etape.description %}<div class="timeline-desc">{{ etape.description }}</div>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if projets %}
+<div class="card">
+  <div class="card-header"><h3>Projets réalisés</h3></div>
+  <div class="card-body">
+    <div class="project-grid">
+      {% for projet in projets %}
+        <div class="project-card">
+          {% if projet.photo %}
+            <img src="{{ url_for('static', filename=projet.photo) }}" class="project-card-img" alt="{{ projet.nom }}"/>
+          {% else %}
+            <div class="project-card-img-placeholder"><i class="bi bi-bar-chart-fill"></i></div>
+          {% endif %}
+          <div class="project-card-body">
+            {% if projet.date %}<div class="project-card-date">{{ projet.date }}</div>{% endif %}
+            <div class="project-card-title">{{ projet.nom }}</div>
+            {% if projet.description %}<div class="project-card-desc">{{ projet.description }}</div>{% endif %}
+            {% if projet.lien %}
+              <a href="{{ projet.lien }}" target="_blank" class="btn btn-sm btn-secondary mt-1">
+                <i class="bi bi-link-45deg"></i> Voir
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

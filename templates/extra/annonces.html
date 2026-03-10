@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% block title %}Annonces — ADAS{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <span class="page-hero-label">Informations</span>
+    <h1>Annonces de la Division</h1>
+    <p>Toutes les communications officielles du bureau</p>
+  </div>
+</div>
+
+<div class="container">
+  {% if is_bureau %}
+  <div style="display:flex;justify-content:flex-end;margin-bottom:1.5rem">
+    <button class="btn btn-primary" data-modal="modalAnnonce">
+      <i class="bi bi-plus-lg"></i> Publier une annonce
+    </button>
+  </div>
+  {% endif %}
+
+  {% if annonces %}
+    <div style="display:flex;flex-direction:column;gap:1.25rem">
+      {% for a in annonces %}
+        <div class="annonce-card {% if a.importante %}importante{% endif %}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:1rem">
+            <div style="flex:1">
+              {% if a.importante %}
+                <span class="badge badge-gold" style="margin-bottom:0.5rem"><i class="bi bi-star-fill"></i> Important</span>
+              {% endif %}
+              <div class="annonce-title">{{ a.titre }}</div>
+              <div class="annonce-meta">
+                <span><i class="bi bi-person-fill"></i> {{ a.auteur.username if a.auteur else 'Bureau' }}</span>
+                <span><i class="bi bi-calendar3"></i> {{ a.date_publication.strftime('%d %B %Y à %H:%M') }}</span>
+              </div>
+              <div class="annonce-body" style="margin-top:0.75rem">{{ a.contenu }}</div>
+            </div>
+            {% if is_bureau %}
+              <form method="POST" action="{{ url_for('extra.supprimer_annonce', id=a.id) }}"
+                    onsubmit="return confirm('Supprimer cette annonce ?')">
+                <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash3"></i></button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state card">
+      <i class="bi bi-megaphone"></i>
+      <h3>Aucune annonce pour le moment</h3>
+      <p>Les annonces du bureau apparaîtront ici</p>
+    </div>
+  {% endif %}
+</div>
+
+{% if is_bureau %}
+<div class="modal-overlay" id="modalAnnonce">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Publier une annonce</h3>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('extra.ajouter_annonce') }}">
+        <div class="form-group">
+          <label class="form-label">Titre *</label>
+          <input type="text" name="titre" class="form-control" required placeholder="Titre de l'annonce"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contenu *</label>
+          <textarea name="contenu" class="form-control" rows="5" required placeholder="Rédigez votre annonce..."></textarea>
+        </div>
+        <div class="form-check" style="margin-bottom:1.25rem">
+          <input type="checkbox" name="importante" id="chkImportante"/>
+          <label for="chkImportante">Marquer comme importante <i class="bi bi-star-fill text-gold"></i></label>
+        </div>
+        <div style="display:flex;gap:0.75rem">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i> Publier</button>
+          <button type="button" class="btn btn-secondary modal-close">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

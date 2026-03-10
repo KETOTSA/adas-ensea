@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Documents — ADAS{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <span class="page-hero-label">Ressources</span>
+    <h1>Documents & Ressources</h1>
+    <p>Téléchargez les documents officiels de la division</p>
+  </div>
+</div>
+<div class="container">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem;flex-wrap:wrap;gap:1rem">
+    <div class="year-tabs" style="margin:0">
+      <a href="{{ url_for('extra.documents') }}" class="year-tab {% if not categorie_active %}active{% endif %}">Tous</a>
+      {% for cat in categories %}
+        <a href="{{ url_for('extra.documents', categorie=cat) }}" class="year-tab {% if cat == categorie_active %}active{% endif %}">{{ cat }}</a>
+      {% endfor %}
+    </div>
+    {% if is_bureau %}
+      <button class="btn btn-primary" data-modal="modalDoc"><i class="bi bi-plus-lg"></i> Ajouter un document</button>
+    {% endif %}
+  </div>
+
+  {% if documents %}
+    <div style="display:flex;flex-direction:column;gap:0.875rem">
+      {% for doc in documents %}
+        <div class="doc-card">
+          <div class="doc-icon">
+            {% set ext = doc.fichier.rsplit('.', 1)[-1].lower() %}
+            {% if ext == 'pdf' %}<i class="bi bi-file-pdf-fill"></i>
+            {% elif ext in ['xls','xlsx'] %}<i class="bi bi-file-earmark-excel-fill"></i>
+            {% elif ext in ['doc','docx'] %}<i class="bi bi-file-earmark-word-fill"></i>
+            {% elif ext in ['ppt','pptx'] %}<i class="bi bi-file-earmark-ppt-fill"></i>
+            {% else %}<i class="bi bi-file-earmark-fill"></i>{% endif %}
+          </div>
+          <div style="flex:1">
+            <div class="doc-name">{{ doc.titre }}</div>
+            <div class="doc-meta">
+              <span class="badge badge-gray">{{ doc.categorie }}</span>
+              <span><i class="bi bi-download"></i> {{ doc.telechargements }} téléchargement(s)</span>
+              <span><i class="bi bi-calendar3"></i> {{ doc.created_at.strftime('%d/%m/%Y') }}</span>
+            </div>
+            {% if doc.description %}<p style="font-size:0.82rem;color:#475569;margin-top:0.25rem">{{ doc.description }}</p>{% endif %}
+          </div>
+          <div style="display:flex;gap:0.5rem">
+            <a href="{{ url_for('extra.telecharger_document', id=doc.id) }}" class="btn btn-primary btn-sm">
+              <i class="bi bi-download"></i> Télécharger
+            </a>
+            {% if is_bureau %}
+              <form method="POST" action="{{ url_for('extra.supprimer_document', id=doc.id) }}"
+                    onsubmit="return confirm('Supprimer ce document ?')">
+                <button type="submit" class="btn btn-sm btn-danger"><i class="bi bi-trash3"></i></button>
+              </form>
+            {% endif %}
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state card"><i class="bi bi-folder2"></i><h3>Aucun document disponible</h3></div>
+  {% endif %}
+</div>
+
+{% if is_bureau %}
+<div class="modal-overlay" id="modalDoc">
+  <div class="modal">
+    <div class="modal-header"><h3>Ajouter un document</h3><button class="modal-close">×</button></div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('extra.ajouter_document') }}" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label">Titre *</label>
+          <input type="text" name="titre" class="form-control" required/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Catégorie</label>
+          <input type="text" name="categorie" class="form-control" list="cats-list" placeholder="Cours, TP, Administratif..."/>
+          <datalist id="cats-list">
+            <option value="Cours"/><option value="TP"/><option value="Examens"/><option value="Administratif"/><option value="Projets"/>
+          </datalist>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea name="description" class="form-control" rows="2"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Fichier *</label>
+          <input type="file" name="fichier" class="form-control" required/>
+          <div class="form-hint">PDF, Word, Excel, PowerPoint, ZIP — max 32MB</div>
+        </div>
+        <div style="display:flex;gap:0.75rem">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-upload"></i> Publier</button>
+          <button type="button" class="btn btn-secondary modal-close">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

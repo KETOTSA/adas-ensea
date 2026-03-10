@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block title %}{% if student %}Modifier{% else %}Ajouter{% endif %} un étudiant — Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <span class="section-label">Administration</span>
+  <h1>{% if student %}Modifier : {{ student.nom_complet }}{% else %}Ajouter un étudiant{% endif %}</h1>
+</div>
+
+<form method="POST" enctype="multipart/form-data">
+  <div class="grid-2">
+    <!-- Left Column -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem">
+      
+      <div class="card">
+        <div class="card-header"><h3>Informations personnelles</h3></div>
+        <div class="card-body">
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Prénom *</label>
+              <input type="text" name="prenom" class="form-control" required
+                     value="{{ student.prenom if student else '' }}" placeholder="Jean"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nom *</label>
+              <input type="text" name="nom" class="form-control" required
+                     value="{{ student.nom if student else '' }}" placeholder="DUPONT"/>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Nationalité</label>
+            <input type="text" name="nationalite" class="form-control"
+                   value="{{ student.nationalite if student else '' }}" placeholder="Française"/>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Date de naissance</label>
+            <input type="date" name="date_naissance" class="form-control"
+                   value="{{ student.date_naissance.isoformat() if student and student.date_naissance else '' }}"/>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Email</label>
+            <input type="email" name="email" class="form-control"
+                   value="{{ student.email if student else '' }}" placeholder="jean.dupont@ecole.fr"/>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Téléphone</label>
+            <input type="tel" name="telephone" class="form-control"
+                   value="{{ student.telephone if student else '' }}" placeholder="+33 6 12 34 56 78"/>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Année d'inscription *</label>
+            <input type="text" name="annee_inscription" class="form-control" required
+                   value="{{ student.annee_inscription if student else annee_courante }}"
+                   placeholder="2024-2025" pattern="\d{4}-\d{4}"/>
+            <small style="color:#94a3b8;font-size:0.78rem">Format: YYYY-YYYY</small>
+          </div>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header"><h3>Photo de profil</h3></div>
+        <div class="card-body">
+          {% if student and student.photo %}
+            <div style="margin-bottom:1rem;text-align:center">
+              <img src="{{ url_for('static', filename=student.photo) }}" 
+                   width="120" height="120" style="border-radius:50%;object-fit:cover;border:3px solid #e8a027"/>
+            </div>
+          {% endif %}
+          <input type="file" name="photo" class="form-control" accept="image/*" data-preview="photoPreview"/>
+          <img id="photoPreview" style="display:none;width:100px;height:100px;border-radius:50%;object-fit:cover;margin-top:0.75rem"/>
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header"><h3>Biographie</h3></div>
+        <div class="card-body">
+          <div class="form-group">
+            <textarea name="bio" class="form-control" rows="4" maxlength="1000"
+                      placeholder="Courte biographie de l'étudiant...">{{ student.bio if student else '' }}</textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right Column -->
+    <div style="display:flex;flex-direction:column;gap:1.5rem">
+      
+      <div class="card">
+        <div class="card-header"><h3>Compte utilisateur</h3></div>
+        <div class="card-body">
+          {% if student and student.user %}
+            <div style="background:#f0f2f5;padding:1rem;border-radius:8px;margin-bottom:1rem">
+              <div style="font-size:0.8rem;color:#475569;margin-bottom:0.25rem">Username actuel</div>
+              <div style="font-weight:700;color:#0a2342">{{ student.user.username }}</div>
+            </div>
+          {% endif %}
+          
+          <div class="form-group">
+            <label class="form-label">
+              {% if student %}Nouveau username{% else %}Username{% endif %}
+              {% if not student %} <span style="color:#94a3b8">(auto-généré si vide)</span>{% endif %}
+            </label>
+            <input type="text" name="username" class="form-control"
+                   value="{{ student.user.username if student and student.user else '' }}"
+                   placeholder="jdupont2024"/>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">
+              {% if student %}Nouveau mot de passe{% else %}Mot de passe{% endif %}
+              {% if not student %} <span style="color:#94a3b8">(auto-généré si vide)</span>{% endif %}
+            </label>
+            <input type="text" name="password" class="form-control"
+                   placeholder="{% if student %}Laisser vide pour ne pas modifier{% else %}StatDiv@2024!{% endif %}"/>
+            <small style="color:#94a3b8;font-size:0.78rem">Minimum 6 caractères</small>
+          </div>
+          
+          {% if not student %}
+            <div style="background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;padding:0.75rem;font-size:0.82rem;color:#92400e">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              Le username et le mot de passe seront affichés après création. Notez-les soigneusement.
+            </div>
+          {% endif %}
+        </div>
+      </div>
+      
+      {% if student %}
+      <div class="card">
+        <div class="card-header"><h3>Informations système</h3></div>
+        <div class="card-body">
+          <div style="display:grid;gap:0.75rem;font-size:0.88rem">
+            <div>
+              <span style="color:#94a3b8">Code étudiant</span>
+              <div><span class="badge badge-navy">{{ student.student_code }}</span></div>
+            </div>
+            <div>
+              <span style="color:#94a3b8">Inscrit le</span>
+              <div>{{ student.created_at.strftime('%d/%m/%Y') }}</div>
+            </div>
+            <div>
+              <span style="color:#94a3b8">Profil public</span>
+              <div>
+                <a href="{{ url_for('student.profil_public', student_id=student.id) }}" 
+                   class="btn btn-sm btn-secondary">
+                  <i class="bi bi-eye"></i> Voir
+                </a>
+              </div>
+            </div>
+            <div>
+              <span style="color:#94a3b8">Parcours</span>
+              <div>{{ student.get_parcours()|length }} étape(s)</div>
+            </div>
+            <div>
+              <span style="color:#94a3b8">Projets</span>
+              <div>{{ student.get_projets()|length }} projet(s)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      
+      <!-- Actions -->
+      <div style="display:flex;gap:0.75rem;flex-wrap:wrap">
+        <button type="submit" class="btn btn-primary btn-lg">
+          <i class="bi bi-check-lg"></i> 
+          {% if student %}Enregistrer les modifications{% else %}Créer l'étudiant{% endif %}
+        </button>
+        <a href="{{ url_for('admin.liste_etudiants') }}" class="btn btn-secondary btn-lg">
+          Annuler
+        </a>
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

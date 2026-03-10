@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+{% block title %}Gérer le Bureau — Admin{% endblock %}
+{% block content %}
+<div class="page-header">
+  <span class="section-label">Administration</span>
+  <h1>Bureau de la Division</h1>
+</div>
+
+<!-- Year selector -->
+<div class="year-tabs" style="margin-bottom:1.5rem">
+  {% for a in annees %}
+    <a href="{{ url_for('admin.gerer_bureau', annee=a) }}"
+       class="year-tab {% if a == annee %}active{% endif %}">{{ a }}</a>
+  {% endfor %}
+</div>
+
+<div class="grid-2">
+  <!-- Ajouter membre -->
+  <div class="card">
+    <div class="card-header"><h3><i class="bi bi-person-plus-fill text-gold"></i> Ajouter un membre</h3></div>
+    <div class="card-body">
+      <form method="POST" action="{{ url_for('admin.ajouter_bureau') }}">
+        <input type="hidden" name="annee_academique" value="{{ annee }}"/>
+        
+        <div class="form-group">
+          <label class="form-label">Étudiant *</label>
+          <select name="student_id" class="form-control" required>
+            <option value="">-- Sélectionner un étudiant --</option>
+            {% for s in etudiants %}
+              <option value="{{ s.id }}">{{ s.nom_complet }} ({{ s.student_code }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Rôle *</label>
+          <input type="text" name="role" class="form-control" required
+                 placeholder="ex: Président(e), Vice-Président(e), Trésorier(e)..." list="roles-list"/>
+          <datalist id="roles-list">
+            <option value="Président(e)"/>
+            <option value="Vice-Président(e)"/>
+            <option value="Secrétaire Général(e)"/>
+            <option value="Trésorier(e)"/>
+            <option value="Chargé(e) de Communication"/>
+            <option value="Chargé(e) de Projets"/>
+            <option value="Commissaire aux Comptes"/>
+          </datalist>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Ordre d'affichage</label>
+          <input type="number" name="ordre" class="form-control" value="{{ bureau|length }}" min="0"/>
+        </div>
+        
+        <button type="submit" class="btn btn-primary">
+          <i class="bi bi-plus-lg"></i> Ajouter au bureau {{ annee }}
+        </button>
+      </form>
+    </div>
+  </div>
+  
+  <!-- Bureau actuel -->
+  <div class="card">
+    <div class="card-header">
+      <h3><i class="bi bi-people-fill text-gold"></i> Bureau {{ annee }}</h3>
+      <span class="badge badge-navy">{{ bureau|length }} membre(s)</span>
+    </div>
+    <div class="card-body" style="padding:0">
+      {% if bureau %}
+        {% for membre in bureau %}
+          <div style="display:flex;align-items:center;gap:0.75rem;padding:0.875rem 1.25rem;border-bottom:1px solid #f0f2f5">
+            {% if membre.student.photo %}
+              <img src="{{ url_for('static', filename=membre.student.photo) }}" 
+                   class="avatar" width="44" height="44"/>
+            {% else %}
+              <div class="avatar-placeholder" style="width:44px;height:44px;font-size:1rem">
+                {{ membre.student.prenom[0] }}{{ membre.student.nom[0] }}
+              </div>
+            {% endif %}
+            <div style="flex:1">
+              <div style="font-weight:700;color:#0a2342;font-size:0.9rem">{{ membre.student.nom_complet }}</div>
+              <div style="font-size:0.75rem;color:#e8a027;font-weight:700;text-transform:uppercase;letter-spacing:0.05em">
+                {{ membre.role }}
+              </div>
+            </div>
+            <form method="POST" action="{{ url_for('admin.supprimer_bureau', bureau_id=membre.id) }}"
+                  onsubmit="return confirm('Retirer ce membre du bureau ?')">
+              <button type="submit" class="btn btn-sm btn-danger">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </form>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state" style="padding:2rem">
+          <i class="bi bi-people" style="font-size:2rem"></i>
+          <p>Aucun membre pour cette année</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<div style="margin-top:1.5rem">
+  <a href="{{ url_for('bureau.index', annee=annee) }}" class="btn btn-secondary">
+    <i class="bi bi-eye"></i> Voir la page publique du bureau
+  </a>
+</div>
+{% endblock %}

@@ -1,0 +1,298 @@
+{% extends 'base.html' %}
+{% block title %}Mon Profil — {{ student.nom_complet }}{% endblock %}
+{% block content %}
+
+<!-- Profile Hero -->
+<div class="profile-hero">
+  <div class="profile-hero-inner">
+    <div class="profile-avatar-wrap">
+      {% if student.photo %}
+        <img src="{{ url_for('static', filename=student.photo) }}" 
+             alt="{{ student.nom_complet }}" class="profile-avatar"/>
+      {% else %}
+        <div class="avatar-placeholder profile-avatar-placeholder">
+          {{ student.prenom[0] }}{{ student.nom[0] }}
+        </div>
+      {% endif %}
+      <button class="btn btn-sm btn-gold" 
+              style="position:absolute;bottom:-8px;right:-8px;border-radius:50%;width:36px;height:36px;padding:0;justify-content:center"
+              data-modal="modalPhoto" title="Changer la photo">
+        <i class="bi bi-camera-fill"></i>
+      </button>
+    </div>
+    
+    <div style="flex:1">
+      <div class="profile-code">{{ student.student_code }}</div>
+      <div class="profile-name">{{ student.prenom }} {{ student.nom }}</div>
+      <div class="profile-meta">
+        {% if student.nationalite %}
+          <span class="profile-meta-item"><i class="bi bi-globe2"></i> {{ student.nationalite }}</span>
+        {% endif %}
+        {% if student.email %}
+          <span class="profile-meta-item"><i class="bi bi-envelope-fill"></i> {{ student.email }}</span>
+        {% endif %}
+        {% if student.telephone %}
+          <span class="profile-meta-item"><i class="bi bi-telephone-fill"></i> {{ student.telephone }}</span>
+        {% endif %}
+        <span class="profile-meta-item">
+          <i class="bi bi-calendar3"></i> Promo {{ student.annee_inscription }}
+        </span>
+      </div>
+    </div>
+    
+    <div style="display:flex;flex-direction:column;gap:0.5rem;flex-shrink:0">
+      <a href="{{ url_for('auth.change_password') }}" class="btn btn-sm btn-outline" 
+         style="color:white;border-color:rgba(255,255,255,0.4)">
+        <i class="bi bi-shield-lock"></i> Mot de passe
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Bio Section -->
+<div class="card mb-3">
+  <div class="card-header">
+    <h3><i class="bi bi-person-lines-fill text-gold"></i> Biographie</h3>
+    <button class="btn btn-sm btn-secondary" data-modal="modalBio">
+      <i class="bi bi-pencil"></i> Modifier
+    </button>
+  </div>
+  <div class="card-body">
+    {% if student.bio %}
+      <p>{{ student.bio }}</p>
+    {% else %}
+      <p class="text-muted" style="font-style:italic">Ajoutez une courte biographie pour vous présenter.</p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- TABS: Parcours / Projets -->
+<div data-tabs>
+  <div class="tab-nav">
+    <button class="tab-btn active" data-tab="parcours">
+      <i class="bi bi-map"></i> Parcours ({{ parcours|length }})
+    </button>
+    <button class="tab-btn" data-tab="projets">
+      <i class="bi bi-folder2-open"></i> Projets ({{ projets|length }})
+    </button>
+  </div>
+  
+  <!-- Parcours Tab -->
+  <div class="tab-panel active" data-panel="parcours">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+      <button class="btn btn-primary btn-sm" data-modal="modalParcours">
+        <i class="bi bi-plus-lg"></i> Ajouter une étape
+      </button>
+    </div>
+    
+    {% if parcours %}
+      <div class="timeline">
+        {% for etape in parcours %}
+          <div class="timeline-item">
+            <div class="timeline-etape">{{ etape.etape }}</div>
+            {% if etape.periode %}
+              <div class="timeline-periode">{{ etape.periode }}</div>
+            {% endif %}
+            {% if etape.description %}
+              <div class="timeline-desc">{{ etape.description }}</div>
+            {% endif %}
+            <form method="POST" action="{{ url_for('student.supprimer_parcours', index=loop.index0) }}" 
+                  style="margin-top:0.5rem" onsubmit="return confirm('Supprimer cette étape ?')">
+              <button type="submit" class="btn btn-sm btn-danger">
+                <i class="bi bi-trash3"></i>
+              </button>
+            </form>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-map"></i>
+        <h3>Aucune étape de parcours</h3>
+        <p>Documentez votre progression académique</p>
+      </div>
+    {% endif %}
+  </div>
+  
+  <!-- Projets Tab -->
+  <div class="tab-panel" data-panel="projets">
+    <div style="display:flex;justify-content:flex-end;margin-bottom:1rem">
+      <button class="btn btn-primary btn-sm" data-modal="modalProjet">
+        <i class="bi bi-plus-lg"></i> Ajouter un projet
+      </button>
+    </div>
+    
+    {% if projets %}
+      <div class="project-grid">
+        {% for projet in projets %}
+          <div class="project-card">
+            {% if projet.photo %}
+              <img src="{{ url_for('static', filename=projet.photo) }}" 
+                   class="project-card-img" alt="{{ projet.nom }}"/>
+            {% else %}
+              <div class="project-card-img-placeholder">
+                <i class="bi bi-bar-chart-fill"></i>
+              </div>
+            {% endif %}
+            <div class="project-card-body">
+              {% if projet.date %}
+                <div class="project-card-date">{{ projet.date }}</div>
+              {% endif %}
+              <div class="project-card-title">{{ projet.nom }}</div>
+              {% if projet.description %}
+                <div class="project-card-desc">{{ projet.description }}</div>
+              {% endif %}
+              {% if projet.lien %}
+                <a href="{{ projet.lien }}" target="_blank" class="btn btn-sm btn-secondary mt-1">
+                  <i class="bi bi-link-45deg"></i> Voir
+                </a>
+              {% endif %}
+              <form method="POST" action="{{ url_for('student.supprimer_projet', index=loop.index0) }}"
+                    style="margin-top:0.5rem" onsubmit="return confirm('Supprimer ce projet ?')">
+                <button type="submit" class="btn btn-sm btn-danger">
+                  <i class="bi bi-trash3"></i> Supprimer
+                </button>
+              </form>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state">
+        <i class="bi bi-folder2"></i>
+        <h3>Aucun projet</h3>
+        <p>Partagez vos réalisations et travaux</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<!-- ─── MODALS ─────────────────────────────────────── -->
+
+<!-- Photo Modal -->
+<div class="modal-overlay" id="modalPhoto">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="text-navy">Changer la photo de profil</h3>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('student.update_photo') }}" enctype="multipart/form-data">
+        <div class="photo-upload-area" onclick="document.getElementById('photoInput').click()">
+          <i class="bi bi-cloud-upload"></i>
+          <p><strong>Cliquez pour uploader</strong></p>
+          <small class="text-muted">JPG, PNG, WebP — max 16MB</small>
+          <img id="photoPreview" style="display:none;max-width:200px;border-radius:50%;margin:1rem auto 0;display:none"/>
+        </div>
+        <input type="file" id="photoInput" name="photo" accept="image/*" 
+               data-preview="photoPreview" style="display:none"/>
+        <div style="margin-top:1rem;display:flex;gap:0.75rem">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-check-lg"></i> Enregistrer
+          </button>
+          <button type="button" class="btn btn-secondary modal-close">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Bio Modal -->
+<div class="modal-overlay" id="modalBio">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="text-navy">Modifier la biographie</h3>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('student.update_bio') }}">
+        <div class="form-group">
+          <label class="form-label">Biographie (max 1000 caractères)</label>
+          <textarea name="bio" class="form-control" rows="5" maxlength="1000"
+                    placeholder="Parlez de vous, vos intérêts, vos objectifs...">{{ student.bio or '' }}</textarea>
+        </div>
+        <div style="display:flex;gap:0.75rem">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Enregistrer</button>
+          <button type="button" class="btn btn-secondary modal-close">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Parcours Modal -->
+<div class="modal-overlay" id="modalParcours">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="text-navy">Ajouter une étape de parcours</h3>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('student.ajouter_parcours') }}">
+        <div class="form-group">
+          <label class="form-label">Titre de l'étape *</label>
+          <input type="text" name="etape" class="form-control" required
+                 placeholder="ex: Année 1 — Introduction aux statistiques"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Période</label>
+          <input type="text" name="periode" class="form-control"
+                 placeholder="ex: Sept. 2023 — Juin 2024"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea name="description" class="form-control" rows="3"
+                    placeholder="Décrivez les cours, modules, compétences acquises..."></textarea>
+        </div>
+        <div style="display:flex;gap:0.75rem">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Ajouter</button>
+          <button type="button" class="btn btn-secondary modal-close">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Projet Modal -->
+<div class="modal-overlay" id="modalProjet">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 class="text-navy">Ajouter un projet</h3>
+      <button class="modal-close">×</button>
+    </div>
+    <div class="modal-body">
+      <form method="POST" action="{{ url_for('student.ajouter_projet') }}" enctype="multipart/form-data">
+        <div class="form-group">
+          <label class="form-label">Nom du projet *</label>
+          <input type="text" name="nom_projet" class="form-control" required
+                 placeholder="ex: Analyse de données COVID-19"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="text" name="date_projet" class="form-control"
+                 placeholder="ex: Juin 2024"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <textarea name="description_projet" class="form-control" rows="3"
+                    placeholder="Décrivez les objectifs, méthodes, résultats..."></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Lien (GitHub, rapport...)</label>
+          <input type="url" name="lien_projet" class="form-control"
+                 placeholder="https://"/>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Photo / Illustration</label>
+          <input type="file" name="photo_projet" class="form-control" accept="image/*"/>
+        </div>
+        <div style="display:flex;gap:0.75rem">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Ajouter</button>
+          <button type="button" class="btn btn-secondary modal-close">Annuler</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

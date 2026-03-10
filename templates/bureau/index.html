@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block title %}Bureau de la Division — ADAS{% endblock %}
+{% block content %}
+
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <span class="page-hero-label">Gouvernance</span>
+    <h1>Bureau de la Division</h1>
+    <p>Les membres élus qui animent et représentent la Division des Analystes Statisticiens</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- Sélecteur d'années -->
+  <div style="margin-bottom:2rem">
+    <span class="section-label">Choisir une année académique</span>
+    <div class="year-tabs" style="margin-top:0.75rem">
+      {% for a in annees %}
+        <a href="{{ url_for('bureau.index', annee=a) }}"
+           class="year-tab {% if a == annee_selectionnee %}active{% endif %}">
+          {{ a }}
+          {% if a == annee_courante %}
+            <span style="font-size:0.65rem;background:#22c55e;color:white;padding:0.1rem 0.4rem;border-radius:999px;margin-left:0.3rem">EN COURS</span>
+          {% endif %}
+        </a>
+      {% endfor %}
+      {% if not annees %}
+        <span style="color:#94a3b8;font-size:0.9rem">Aucune année configurée</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Bureau de l'année sélectionnée -->
+  {% if annee_selectionnee %}
+    <div style="margin-bottom:1.5rem">
+      <span class="section-label">Année académique {{ annee_selectionnee }}</span>
+      <h2 class="section-title">
+        {% if annee_selectionnee == annee_courante %}
+          Bureau actuel
+        {% else %}
+          Bureau {{ annee_selectionnee }}
+        {% endif %}
+      </h2>
+      <div class="section-line"></div>
+    </div>
+
+    {% if bureau %}
+      <div class="bureau-grid" style="margin-bottom:3rem">
+        {% for membre in bureau %}
+          <div class="bureau-card">
+            <div class="bureau-role">{{ membre.role }}</div>
+            {% if membre.student.photo %}
+              <img src="{{ url_for('static', filename=membre.student.photo) }}"
+                   class="avatar" width="90" height="90" style="margin:0 auto"
+                   alt="{{ membre.student.nom_complet }}"/>
+            {% else %}
+              <div class="avatar-placeholder" style="width:90px;height:90px;font-size:1.8rem;margin:0 auto">
+                {{ membre.student.prenom[0] }}{{ membre.student.nom[0] }}
+              </div>
+            {% endif %}
+            <div class="bureau-name">{{ membre.student.prenom }}<br/>{{ membre.student.nom }}</div>
+            {% if membre.student.nationalite %}
+              <div style="margin:0.3rem 0"><span class="badge badge-info">{{ membre.student.nationalite }}</span></div>
+            {% endif %}
+            <div class="bureau-promo">Promo {{ membre.student.annee_inscription }}</div>
+            <a href="{{ url_for('student.profil_public', student_id=membre.student.id) }}"
+               class="btn btn-outline btn-sm" style="margin-top:0.875rem">
+              <i class="bi bi-person-fill"></i> Voir le profil
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="empty-state card" style="margin-bottom:2.5rem">
+        <i class="bi bi-people"></i>
+        <h3>Aucun bureau pour {{ annee_selectionnee }}</h3>
+        <p>Le bureau de cette année n'a pas encore été configuré</p>
+        {% if current_user.is_authenticated and current_user.is_admin() %}
+          <a href="{{ url_for('admin.gerer_bureau', annee=annee_selectionnee) }}"
+             class="btn btn-primary mt-2">
+            <i class="bi bi-plus-lg"></i> Configurer ce bureau
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <!-- Lien admin -->
+  {% if current_user.is_authenticated and current_user.is_admin() %}
+    <div style="margin-top:1rem;padding-top:1.5rem;border-top:1px solid #e2e8f0">
+      <a href="{{ url_for('admin.gerer_bureau') }}" class="btn btn-primary">
+        <i class="bi bi-gear-fill"></i> Gérer les bureaux (Admin)
+      </a>
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

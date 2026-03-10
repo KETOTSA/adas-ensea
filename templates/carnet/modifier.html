@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% block title %}Modifier la note — {{ note.titre }}{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <span class="page-hero-label">Mon Carnet</span>
+    <h1>Modifier la note</h1>
+  </div>
+</div>
+<div class="container-sm">
+  <div class="card">
+    <div class="card-header" style="background:{{ note.couleur }};color:white">
+      <h3 style="color:white;margin:0">{{ note.titre }}</h3>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="form-group">
+          <label class="form-label">Titre *</label>
+          <input type="text" name="titre" class="form-control" required value="{{ note.titre }}"/>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Catégorie</label>
+            <input type="text" name="categorie" class="form-control" value="{{ note.categorie }}"
+                   list="cats-list" placeholder="Cours, Idées..."/>
+            <datalist id="cats-list">
+              <option value="Général"/><option value="Cours"/><option value="Projet"/>
+              <option value="Idées"/><option value="Révisions"/><option value="Personnel"/>
+            </datalist>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Couleur</label>
+            <div style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.3rem">
+              {% for c in couleurs %}
+                <label style="cursor:pointer">
+                  <input type="radio" name="couleur" value="{{ c }}" {% if c == note.couleur %}checked{% endif %} style="display:none"/>
+                  <div style="width:28px;height:28px;border-radius:50%;background:{{ c }};border:3px solid {% if c == note.couleur %}#e8b85c{% else %}transparent{% endif %}"></div>
+                </label>
+              {% endfor %}
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Contenu *</label>
+          <textarea name="contenu" class="form-control" rows="12" required>{{ note.contenu }}</textarea>
+        </div>
+        <div style="display:flex;gap:0.75rem">
+          <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Enregistrer</button>
+          <a href="{{ url_for('carnet.index') }}" class="btn btn-secondary">Annuler</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

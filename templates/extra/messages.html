@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% block title %}Messages — ADAS{% endblock %}
+{% block content %}
+<div class="page-hero">
+  <div class="page-hero-inner">
+    <span class="page-hero-label">Communication</span>
+    <h1>Messages</h1>
+    <p>Échanges avec le bureau et les membres de la division</p>
+  </div>
+</div>
+<div class="container">
+  <div class="grid-2">
+    <!-- Composer -->
+    <div>
+      <div class="card mb-3">
+        <div class="card-header"><h3><i class="bi bi-pencil-fill text-gold"></i> Nouveau message</h3></div>
+        <div class="card-body">
+          <form method="POST" action="{{ url_for('extra.envoyer_message') }}">
+            <div class="form-group">
+              <label class="form-label">Destinataire</label>
+              <select name="destinataire_id" class="form-control">
+                <option value="">-- Choisir --</option>
+                {% for d in destinataires %}
+                  {% if d.id != current_user.id %}
+                    <option value="{{ d.id }}">
+                      {{ d.student.nom_complet if d.student else d.username }}
+                      {% if d.role == 'admin' %}(Admin){% endif %}
+                    </option>
+                  {% endif %}
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Sujet</label>
+              <input type="text" name="sujet" class="form-control" placeholder="Objet du message"/>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Message *</label>
+              <textarea name="contenu" class="form-control" rows="4" required placeholder="Votre message..."></textarea>
+            </div>
+            {% if is_bureau %}
+            <div class="form-check" style="margin-bottom:1rem">
+              <input type="checkbox" name="public" id="chkPublic"/>
+              <label for="chkPublic">Publier comme message public du bureau</label>
+            </div>
+            {% endif %}
+            <button type="submit" class="btn btn-primary"><i class="bi bi-send-fill"></i> Envoyer</button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Messages publics du bureau -->
+      <div>
+        <span class="section-label">Bureau</span>
+        <h3 style="margin-bottom:1rem">Messages publics</h3>
+        {% if publics %}
+          {% for msg in publics %}
+            <div class="msg-card public-msg">
+              <div class="msg-header">
+                <span class="msg-from"><i class="bi bi-people-fill text-gold"></i> {{ msg.expediteur.student.nom_complet if msg.expediteur.student else msg.expediteur.username }}</span>
+                <span class="msg-date">{{ msg.created_at.strftime('%d/%m/%Y %H:%M') }}</span>
+              </div>
+              {% if msg.sujet %}<div class="msg-sujet">{{ msg.sujet }}</div>{% endif %}
+              <div class="msg-body">{{ msg.contenu }}</div>
+            </div>
+          {% endfor %}
+        {% else %}
+          <div class="empty-state" style="padding:2rem"><i class="bi bi-chat-dots" style="font-size:2rem"></i><p>Aucun message public</p></div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Messages privés reçus -->
+    <div>
+      <span class="section-label">Boîte de réception</span>
+      <h3 style="margin-bottom:1rem">Mes messages reçus {% if non_lus > 0 %}<span class="badge badge-danger">{{ non_lus }} non lu(s)</span>{% endif %}</h3>
+      {% if prives %}
+        {% for msg in prives %}
+          <div class="msg-card {% if not msg.lu %}non-lu{% endif %}">
+            <div class="msg-header">
+              <span class="msg-from">
+                {% if not msg.lu %}<i class="bi bi-circle-fill" style="color:#3b82f6;font-size:0.5rem;vertical-align:middle"></i> {% endif %}
+                De : {{ msg.expediteur.student.nom_complet if msg.expediteur.student else msg.expediteur.username }}
+              </span>
+              <span class="msg-date">{{ msg.created_at.strftime('%d/%m %H:%M') }}</span>
+            </div>
+            {% if msg.sujet %}<div class="msg-sujet">{{ msg.sujet }}</div>{% endif %}
+            <div class="msg-body">{{ msg.contenu }}</div>
+            {% if not msg.lu %}
+              <form method="POST" action="{{ url_for('extra.marquer_lu', id=msg.id) }}" style="margin-top:0.5rem">
+                <button type="submit" class="btn btn-sm btn-secondary"><i class="bi bi-check2"></i> Marquer lu</button>
+              </form>
+            {% endif %}
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="empty-state" style="padding:2rem"><i class="bi bi-inbox" style="font-size:2rem"></i><p>Aucun message reçu</p></div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}
