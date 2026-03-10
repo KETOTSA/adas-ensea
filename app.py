@@ -10,7 +10,7 @@ def create_app():
     app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'statdiv-secret-key-change-in-production')
     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
         'DATABASE_URL',
-        f"sqlite:///{os.path.join(os.path.dirname(__file__), 'instance', 'statdiv.db')}"
+        f"sqlite:////tmp/statdiv.db"
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['MAX_CONTENT_LENGTH'] = 32 * 1024 * 1024
@@ -73,7 +73,7 @@ def _seed_admin():
         admin.set_password('Admin@StatDiv2024!')
         db.session.add(admin)
         db.session.commit()
-        print("✅ Admin créé — username: admin / password: Admin@StatDiv2024!")
+        print(" Admin créé — username: admin / password: Admin@StatDiv2024!")
 
 
 app = create_app()
